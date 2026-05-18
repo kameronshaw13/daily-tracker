@@ -190,6 +190,18 @@ h2 {
 }
 .textarea { min-height: 96px; resize: vertical; }
 .input:focus, .textarea:focus, .select:focus { border-color: rgba(107,74,47,.55); }
+
+.date-input {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+  text-align: center;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
 .btn {
   border: 0;
   border-radius: 16px;

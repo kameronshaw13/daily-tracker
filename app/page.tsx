@@ -320,7 +320,7 @@ export default function Home() {
               </div>
             </div>
             <div className="form-row">
-              <input className="input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              <input className="input date-input" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
               <div className="metric-grid">
                 <div className="metric-card">
                   <label>Weight</label>
