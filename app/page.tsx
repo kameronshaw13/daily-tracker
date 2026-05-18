@@ -433,7 +433,7 @@ export default function Home() {
             </div>
             <div className="form-row">
               <div className="form-grid schedule-form-grid">
-                <input className="input" type="time" value={scheduleTime} onChange={(e) => setScheduleTime(e.target.value)} />
+                <input className="input schedule-time-input" type="time" value={scheduleTime} onChange={(e) => setScheduleTime(e.target.value)} />
                 <input className="input" value={scheduleTitle} onChange={(e) => setScheduleTitle(e.target.value)} placeholder="Task" />
               </div>
               <input className="input" value={scheduleNotes} onChange={(e) => setScheduleNotes(e.target.value)} placeholder="Notes" />

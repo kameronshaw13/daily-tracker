@@ -392,3 +392,35 @@ h2 {
     min-width: 0;
   }
 }
+
+
+/* Keep the schedule time field/chip from pushing too far right on phones. */
+.schedule-time-input {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.schedule-time-input::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+@media (max-width: 699px) {
+  .schedule-form-grid,
+  .schedule-item {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .schedule-item .time-chip {
+    justify-self: start;
+    width: 96px;
+    max-width: 96px;
+    min-width: 0;
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: center;
+  }
+}
