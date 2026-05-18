@@ -359,3 +359,36 @@ h2 {
   .stat-grid { grid-template-columns: 1fr; }
   .tabs { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* Schedule page mobile spacing fix: keep time and task from feeling bunched. */
+.schedule-form-grid {
+  grid-template-columns: 1fr;
+}
+
+.schedule-item {
+  grid-template-columns: 1fr auto;
+  align-items: start;
+}
+.schedule-item .time-chip {
+  grid-column: 1 / -1;
+  width: fit-content;
+  min-width: 82px;
+}
+.schedule-item .item-main {
+  min-width: 0;
+}
+
+@media (min-width: 700px) {
+  .schedule-form-grid {
+    grid-template-columns: 160px 1fr;
+  }
+  .schedule-item {
+    grid-template-columns: 92px 1fr auto;
+    align-items: center;
+  }
+  .schedule-item .time-chip {
+    grid-column: auto;
+    width: auto;
+    min-width: 0;
+  }
+}
