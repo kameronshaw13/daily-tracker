@@ -293,24 +293,31 @@ h2 {
 .history-row {
   display: grid;
   grid-template-columns: 1fr auto;
+  align-items: center;
   gap: 10px;
   border-top: 1px solid var(--line);
-  padding: 10px 0;
+  padding: 12px 0;
 }
 .history-row:first-child { border-top: 0; }
 .history-values {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
   gap: 6px;
 }
 .history-values span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
   border-radius: 999px;
-  padding: 5px 8px;
+  padding: 7px 10px 6px;
   background: #efe2cc;
   color: var(--brown-2);
   font-size: 12px;
   font-weight: 900;
+  line-height: 1;
 }
 
 .bottom-nav {
