@@ -5,13 +5,17 @@ export const metadata: Metadata = {
   title: "Momentum",
   description: "Momentum 75-day challenge tracker.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#6b4a2f",
+  themeColor: "#06111f",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
