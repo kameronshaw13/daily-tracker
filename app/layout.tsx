@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Momentum",
-  description: "A shared 75-day challenge tracker for Kameron and Anna.",
+  description: "Momentum 75-day challenge tracker.",
   manifest: "/manifest.json",
 };
 

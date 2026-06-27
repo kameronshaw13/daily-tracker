@@ -47,14 +47,13 @@ const defaultGoals: Goal[] = [
     active: true,
     template: true,
   },
-  { id: "read", title: "Read 10 pages", detail: "Keep it simple and consistent.", active: true, template: true },
+  { id: "read", title: "Read 10 pages", detail: "10 pages.", active: true, template: true },
   { id: "devotional", title: "Pray / Christian devotional", detail: "Before bed.", active: true, template: true },
   { id: "screen-under-2", title: "Screen time under 2 hours", detail: "Enter iPhone Screen Time manually in Trackers.", active: true, template: true },
-  { id: "no-phone-am", title: "No phone before 9:00 AM", detail: "Protect the morning.", active: true, template: true },
-  { id: "no-phone-pm", title: "No phone after 9:00 PM", detail: "Protect sleep and the nightly review.", active: true, template: true },
+  { id: "no-phone-am", title: "No phone before 9:00 AM", detail: "Morning cutoff.", active: true, template: true },
+  { id: "no-phone-pm", title: "No phone after 9:00 PM", detail: "Night cutoff.", active: true, template: true },
   { id: "eat-clean", title: "Eat clean", detail: "Choose whole, simple foods.", active: true, template: true },
-  { id: "no-processed-snacks", title: "No processed-food snacks", detail: "Skip the easy junk snacks.", active: true, template: true },
-  { id: "no-fast-food", title: "No junk / fast-food eating out", detail: "Keep meals aligned with the challenge.", active: true, template: true },
+  { id: "no-processed-snacks", title: "No processed-food snacks", detail: "Whole-food snacks only.", active: true, template: true },
   {
     id: "nightly-meeting",
     title: "Nightly meeting",
@@ -218,6 +217,7 @@ function mergeSavedData(saved: unknown): AppData {
 export default function Home() {
   const [tab, setTab] = useState<Tab>("Today");
   const [date, setDate] = useState(getInitialDate);
+  const [selectedPerson, setSelectedPerson] = useState<PersonId>("kameron");
   const [data, setData] = useState<AppData>(starterData);
   const [newGoals, setNewGoals] = useState<Record<PersonId, string>>({ kameron: "", anna: "" });
 
@@ -300,11 +300,10 @@ export default function Home() {
     }));
   }
 
-  const todayStats = people.map((person) => ({
-    ...person,
-    stats: completionFor(data[person.id], date),
-  }));
-  const householdToday = Math.round(average(todayStats.map((person) => person.stats.pct)));
+  const selectedName = people.find((person) => person.id === selectedPerson)?.name ?? "Kameron";
+  const selectedToday = completionFor(data[selectedPerson], date);
+  const selectedProgress = progressSummary(selectedPerson);
+  const selectedTracker = trackerSummary(selectedPerson);
 
   function progressSummary(personId: PersonId) {
     const person = data[personId];
@@ -445,7 +444,7 @@ export default function Home() {
         <div className="hero-top">
           <div>
             <p className="eyebrow">Momentum 75</p>
-            <h1>Kameron and Anna</h1>
+            <h1>{selectedName}</h1>
           </div>
           <input
             className="date-pill"
@@ -457,22 +456,32 @@ export default function Home() {
           />
         </div>
 
-        <p className="hero-copy">A shared 75-day challenge for clean habits, discipline, faith, movement, and nightly review.</p>
-
         <div className="progress-area">
           <div className="progress-label">
             <span>{dayLabel(date)}</span>
-            <span>{householdToday}% household</span>
+            <span>{selectedToday.pct}%</span>
           </div>
-          <div className="progress-track"><div className="progress-fill" style={{ width: `${householdToday}%` }} /></div>
+          <div className="progress-track"><div className="progress-fill" style={{ width: `${selectedToday.pct}%` }} /></div>
         </div>
 
         <div className="stat-grid hero-stats">
           <div className="stat-card"><span>Range</span><strong>Jun 28 - Sep 10</strong></div>
-          <div className="stat-card"><span>Kameron</span><strong>{todayStats[0].stats.pct}%</strong></div>
-          <div className="stat-card"><span>Anna</span><strong>{todayStats[1].stats.pct}%</strong></div>
+          <div className="stat-card"><span>Done</span><strong>{selectedToday.completed}/{selectedToday.total}</strong></div>
+          <div className="stat-card"><span>Overall</span><strong>{selectedProgress.overall}%</strong></div>
         </div>
       </section>
+
+      <div className="person-switch" aria-label="Select person">
+        {people.map((person) => (
+          <button
+            key={person.id}
+            className={selectedPerson === person.id ? "active" : ""}
+            onClick={() => setSelectedPerson(person.id)}
+          >
+            {person.name}
+          </button>
+        ))}
+      </div>
 
       <div className="tabs">
         {tabs.map((name) => <button key={name} className={`tab ${tab === name ? "active" : ""}`} onClick={() => setTab(name)}>{name}</button>)}
@@ -482,153 +491,116 @@ export default function Home() {
         <section className="section">
           <div className="focus-card">
             <span>{friendlyDate(date)}</span>
-            <strong>{dayLabel(date)} - June 28, 2026 to September 10, 2026.</strong>
-            <p>Use this during the nightly meeting: check what happened, enter screen time from iPhone Screen Time, and keep the tone honest but kind.</p>
+            <strong>{dayLabel(date)} - June 28, 2026 to September 10, 2026</strong>
           </div>
 
-          {people.map((person) => <PersonChecklist key={person.id} personId={person.id} name={person.name} />)}
+          <PersonChecklist personId={selectedPerson} name={selectedName} />
         </section>
       )}
 
       {tab === "Progress" && (
         <section className="section">
           <div className="card">
-            <div className="card-title">
-              <div><h2>Challenge progress</h2><p>Completion is based on each person&apos;s active goals for each day.</p></div>
-            </div>
-            <div className="stat-grid light">
-              {people.map((person) => {
-                const summary = progressSummary(person.id);
-                return (
-                  <div className="stat-card" key={person.id}>
-                    <span>{person.name}</span>
-                    <strong>{summary.overall}%</strong>
-                    <small>Overall so far</small>
-                  </div>
-                );
-              })}
-              <div className="stat-card">
-                <span>Household</span>
-                <strong>{Math.round(average(people.map((person) => progressSummary(person.id).overall)))}%</strong>
-                <small>Combined</small>
+            <div className="card-title compact">
+              <div>
+                <h2>{selectedName} progress</h2>
+                <p>{friendlyDate(date)}</p>
               </div>
+              <strong className="score-pill">{selectedProgress.today.pct}% today</strong>
             </div>
+            <div className="stat-grid light split">
+              <div className="stat-card"><span>Overall</span><strong>{selectedProgress.overall}%</strong></div>
+              <div className="stat-card"><span>Current</span><strong>{selectedProgress.currentStreak}</strong></div>
+              <div className="stat-card"><span>Best</span><strong>{selectedProgress.bestStreak}</strong></div>
+            </div>
+            <MiniCalendar personId={selectedPerson} />
           </div>
-
-          {people.map((person) => {
-            const summary = progressSummary(person.id);
-            return (
-              <div className="card" key={person.id}>
-                <div className="card-title compact">
-                  <div>
-                    <h2>{person.name}</h2>
-                    <p>Today: {summary.today.pct}% complete.</p>
-                  </div>
-                  <strong className="score-pill">{summary.currentStreak} day streak</strong>
-                </div>
-                <div className="stat-grid light split">
-                  <div className="stat-card"><span>Current</span><strong>{summary.currentStreak}</strong></div>
-                  <div className="stat-card"><span>Best</span><strong>{summary.bestStreak}</strong></div>
-                  <div className="stat-card"><span>Today</span><strong>{summary.today.pct}%</strong></div>
-                </div>
-                <MiniCalendar personId={person.id} />
-              </div>
-            );
-          })}
         </section>
       )}
 
       {tab === "Trackers" && (
         <section className="section">
           <div className="focus-card">
-            <span>Manual screen time</span>
-            <strong>Enter screen time from iPhone Screen Time.</strong>
-            <p>There is no automatic Apple Screen Time integration. The daily screen-time goal passes when the entry is under 2 hours.</p>
+            <span>{selectedName}</span>
+            <strong>Screen time is entered manually from iPhone Screen Time.</strong>
           </div>
 
-          {people.map((person) => {
-            const summary = trackerSummary(person.id);
-            return (
-              <div className="card" key={person.id}>
-                <div className="card-title">
-                  <div><h2>{person.name} trackers</h2><p>{friendlyDate(date)}</p></div>
-                </div>
+          <div className="card">
+            <div className="card-title">
+              <div><h2>Trackers</h2><p>{friendlyDate(date)}</p></div>
+            </div>
 
-                <div className="form-grid">
-                  <label className="metric-card">
-                    <span>Weight</span>
-                    <input
-                      value={summary.log.weight}
-                      onChange={(event) => updateTracker(person.id, "weight", event.target.value)}
-                      inputMode="decimal"
-                      placeholder="lbs"
-                    />
-                    <small>Enter weight for this date.</small>
-                  </label>
-                  <label className="metric-card">
-                    <span>Screen time</span>
-                    <input
-                      value={summary.log.screenTime}
-                      onChange={(event) => updateTracker(person.id, "screenTime", event.target.value)}
-                      inputMode="decimal"
-                      placeholder="hours"
-                    />
-                    <small>{summary.screenPassed === null ? "Manual entry needed" : summary.screenPassed ? "Passed under 2 hours" : "Over 2 hours"}</small>
-                  </label>
-                </div>
+            <div className="form-grid">
+              <label className="metric-card">
+                <span>Weight</span>
+                <input
+                  value={selectedTracker.log.weight}
+                  onChange={(event) => updateTracker(selectedPerson, "weight", event.target.value)}
+                  inputMode="decimal"
+                  placeholder="lbs"
+                />
+                <small>Daily entry</small>
+              </label>
+              <label className="metric-card">
+                <span>Screen time</span>
+                <input
+                  value={selectedTracker.log.screenTime}
+                  onChange={(event) => updateTracker(selectedPerson, "screenTime", event.target.value)}
+                  inputMode="decimal"
+                  placeholder="hours"
+                />
+                <small>{selectedTracker.screenPassed === null ? "Manual entry" : selectedTracker.screenPassed ? "Under 2 hours" : "Over 2 hours"}</small>
+              </label>
+            </div>
 
-                <div className="stat-grid light tracker-stats">
-                  <div className="stat-card"><span>Start</span><strong>{summary.startingWeight === null ? "--" : summary.startingWeight.toFixed(1)}</strong><small>lbs</small></div>
-                  <div className="stat-card"><span>Current</span><strong>{summary.currentWeight === null ? "--" : summary.currentWeight.toFixed(1)}</strong><small>lbs</small></div>
-                  <div className="stat-card"><span>Change</span><strong>{summary.weightChange === null ? "--" : signedNumber(summary.weightChange)}</strong><small>lbs</small></div>
-                  <div className="stat-card"><span>Today screen</span><strong>{clean(summary.log.screenTime, "h")}</strong><small>under 2h goal</small></div>
-                  <div className="stat-card"><span>7-day avg</span><strong>{summary.screenWeeklyAverage ? summary.screenWeeklyAverage.toFixed(1) : "--"}</strong><small>hours</small></div>
-                  <div className="stat-card"><span>Status</span><strong>{summary.screenPassed === null ? "--" : summary.screenPassed ? "Pass" : "Miss"}</strong><small>today</small></div>
-                </div>
+            <div className="stat-grid light tracker-stats">
+              <div className="stat-card"><span>Start</span><strong>{selectedTracker.startingWeight === null ? "--" : selectedTracker.startingWeight.toFixed(1)}</strong><small>lbs</small></div>
+              <div className="stat-card"><span>Current</span><strong>{selectedTracker.currentWeight === null ? "--" : selectedTracker.currentWeight.toFixed(1)}</strong><small>lbs</small></div>
+              <div className="stat-card"><span>Change</span><strong>{selectedTracker.weightChange === null ? "--" : signedNumber(selectedTracker.weightChange)}</strong><small>lbs</small></div>
+              <div className="stat-card"><span>Screen</span><strong>{clean(selectedTracker.log.screenTime, "h")}</strong><small>today</small></div>
+              <div className="stat-card"><span>7-day avg</span><strong>{selectedTracker.screenWeeklyAverage ? selectedTracker.screenWeeklyAverage.toFixed(1) : "--"}</strong><small>hours</small></div>
+              <div className="stat-card"><span>Status</span><strong>{selectedTracker.screenPassed === null ? "--" : selectedTracker.screenPassed ? "Pass" : "Miss"}</strong><small>under 2h</small></div>
+            </div>
 
-                <TrendChart points={summary.weightLogs} />
-              </div>
-            );
-          })}
+            <TrendChart points={selectedTracker.weightLogs} />
+          </div>
         </section>
       )}
 
       {tab === "Goals" && (
         <section className="section">
-          {people.map((person) => (
-            <div className="card" key={person.id}>
-              <div className="card-title">
-                <div><h2>{person.name} goals</h2><p>Edit text, toggle active goals, or add personal goals.</p></div>
-              </div>
-
-              <div className="add-goal">
-                <input
-                  value={newGoals[person.id]}
-                  onChange={(event) => setNewGoals((current) => ({ ...current, [person.id]: event.target.value }))}
-                  placeholder={`Add a ${person.name} goal`}
-                />
-                <button className="btn small" onClick={() => addCustomGoal(person.id)}>Add</button>
-              </div>
-
-              <div className="goal-editor">
-                {data[person.id].goals.map((goal) => (
-                  <div className={`goal-edit-row ${goal.active ? "" : "inactive"}`} key={goal.id}>
-                    <label className="toggle-line">
-                      <input
-                        type="checkbox"
-                        checked={goal.active}
-                        onChange={(event) => updateGoal(person.id, goal.id, "active", event.target.checked)}
-                      />
-                      <span>{goal.active ? "Active" : "Paused"}</span>
-                    </label>
-                    <input value={goal.title} onChange={(event) => updateGoal(person.id, goal.id, "title", event.target.value)} />
-                    <textarea value={goal.detail} onChange={(event) => updateGoal(person.id, goal.id, "detail", event.target.value)} />
-                    {!goal.template && <button className="btn secondary small" onClick={() => deleteCustomGoal(person.id, goal.id)}>Delete</button>}
-                  </div>
-                ))}
-              </div>
+          <div className="card">
+            <div className="card-title">
+              <div><h2>{selectedName} goals</h2></div>
             </div>
-          ))}
+
+            <div className="add-goal">
+              <input
+                value={newGoals[selectedPerson]}
+                onChange={(event) => setNewGoals((current) => ({ ...current, [selectedPerson]: event.target.value }))}
+                placeholder={`Add a ${selectedName} goal`}
+              />
+              <button className="btn small" onClick={() => addCustomGoal(selectedPerson)}>Add</button>
+            </div>
+
+            <div className="goal-editor">
+              {data[selectedPerson].goals.map((goal) => (
+                <div className={`goal-edit-row ${goal.active ? "" : "inactive"}`} key={goal.id}>
+                  <label className="toggle-line">
+                    <input
+                      type="checkbox"
+                      checked={goal.active}
+                      onChange={(event) => updateGoal(selectedPerson, goal.id, "active", event.target.checked)}
+                    />
+                    <span>{goal.active ? "Active" : "Paused"}</span>
+                  </label>
+                  <input value={goal.title} onChange={(event) => updateGoal(selectedPerson, goal.id, "title", event.target.value)} />
+                  <textarea value={goal.detail} onChange={(event) => updateGoal(selectedPerson, goal.id, "detail", event.target.value)} />
+                  {!goal.template && <button className="btn secondary small" onClick={() => deleteCustomGoal(selectedPerson, goal.id)}>Delete</button>}
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
       )}
 

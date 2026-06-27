@@ -36,7 +36,7 @@ button { cursor: pointer; }
 
 .hero {
   border: 1px solid var(--line);
-  border-radius: 28px;
+  border-radius: 12px;
   padding: 20px;
   background: linear-gradient(135deg, var(--brown), var(--brown-dark));
   color: #fff8e9;
@@ -75,7 +75,7 @@ h1 {
   width: 142px;
   max-width: 45%;
   border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 10px 11px;
   background: rgba(255, 255, 255, 0.09);
   color: #fff6df;
@@ -100,7 +100,7 @@ h1 {
 .progress-track {
   height: 12px;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.18);
 }
 .progress-track.light {
@@ -109,7 +109,7 @@ h1 {
 }
 .progress-fill {
   height: 100%;
-  border-radius: 999px;
+  border-radius: 4px;
   background: linear-gradient(90deg, #fff5d8, var(--gold));
   transition: width 0.25s ease;
 }
@@ -124,7 +124,7 @@ h1 {
 .stat-card {
   min-width: 0;
   border: 1px solid rgba(255, 255, 255, 0.17);
-  border-radius: 18px;
+  border-radius: 8px;
   padding: 11px 10px;
   background: rgba(255, 255, 255, 0.08);
 }
@@ -159,6 +159,27 @@ h1 {
 .stat-grid.split { grid-template-columns: repeat(3, 1fr); }
 .tracker-stats { grid-template-columns: repeat(3, 1fr); }
 
+.person-switch {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 12px 0 0;
+}
+.person-switch button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(255, 250, 240, 0.78);
+  color: var(--brown);
+  font-size: 13px;
+  font-weight: 1000;
+}
+.person-switch button.active {
+  border-color: var(--brown);
+  background: var(--brown);
+  color: #fff8e9;
+}
+
 .tabs {
   position: sticky;
   top: 0;
@@ -173,7 +194,7 @@ h1 {
 }
 .tab {
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 10px 3px;
   background: rgba(255, 250, 240, 0.75);
   color: var(--muted);
@@ -189,7 +210,7 @@ h1 {
 .section { display: grid; gap: 12px; }
 .card, .focus-card {
   border: 1px solid var(--line);
-  border-radius: 24px;
+  border-radius: 10px;
   padding: 16px;
   background: rgba(255, 250, 240, 0.9);
   box-shadow: 0 12px 32px rgba(58, 35, 20, 0.08);
@@ -233,7 +254,7 @@ p, small {
 
 .btn {
   border: 0;
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 12px 14px;
   background: var(--brown);
   color: #fff8e9;
@@ -246,14 +267,14 @@ p, small {
 }
 .btn.small {
   padding: 8px 10px;
-  border-radius: 12px;
+  border-radius: 8px;
   font-size: 12px;
   white-space: nowrap;
 }
 
 .score-pill {
   flex: 0 0 auto;
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 8px 11px;
   background: #efe2cc;
   color: var(--brown-dark);
@@ -270,7 +291,7 @@ p, small {
   gap: 11px;
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 8px;
   padding: 11px;
   background: rgba(255, 255, 255, 0.58);
   color: var(--ink);
@@ -294,7 +315,7 @@ p, small {
   width: 28px;
   height: 28px;
   border: 2px solid rgba(107, 74, 47, 0.35);
-  border-radius: 9px;
+  border-radius: 5px;
   font-weight: 1000;
 }
 .task-row.done .box {
@@ -321,7 +342,7 @@ p, small {
   aspect-ratio: 1;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: 4px;
   padding: 0;
   background: #f2e6d2;
   color: var(--brown-dark);
@@ -355,7 +376,7 @@ p, small {
 .metric-card {
   display: grid;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 8px;
   padding: 14px;
   background: var(--card-strong);
 }
@@ -386,7 +407,7 @@ p, small {
   min-height: 148px;
   margin-top: 14px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 8px;
   padding: 12px 10px 8px;
   background: #fffdf7;
 }
@@ -401,7 +422,7 @@ p, small {
 .trend-bar span {
   width: 100%;
   min-height: 8px;
-  border-radius: 999px 999px 4px 4px;
+  border-radius: 4px 4px 2px 2px;
   background: linear-gradient(180deg, var(--gold), #b8843f);
 }
 .trend-bar small {
@@ -424,7 +445,7 @@ p, small {
   width: 100%;
   min-width: 0;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 11px 12px;
   outline: none;
   background: #fffdf7;
@@ -435,7 +456,7 @@ p, small {
   display: grid;
   gap: 8px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 8px;
   padding: 11px;
   background: rgba(255, 255, 255, 0.56);
 }
@@ -465,7 +486,7 @@ p, small {
 
 .empty {
   border: 1px dashed rgba(107, 74, 47, 0.28);
-  border-radius: 18px;
+  border-radius: 8px;
   padding: 16px;
   color: var(--muted);
   text-align: center;
@@ -484,7 +505,7 @@ p, small {
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   border: 1px solid var(--line);
-  border-radius: 24px;
+  border-radius: 12px;
   padding: 8px;
   background: rgba(255, 250, 240, 0.92);
   box-shadow: 0 16px 40px rgba(58, 35, 20, 0.16);
@@ -492,7 +513,7 @@ p, small {
 }
 .bottom-nav button {
   border: 0;
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 10px 2px;
   background: transparent;
   color: var(--muted);
