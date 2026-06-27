@@ -1,56 +1,24 @@
-# Momentum Daily App
+# Momentum 75-Day Challenge
 
-A mobile-first Next.js app built from the daily tracker base and converted into a daily routine app for schedule, food ideas, workouts, reading, app work, presence goals, and progress history.
+A mobile-first Next.js app for Kameron and Anna's shared 75-day Momentum challenge.
+
+The challenge runs from June 28, 2026 through September 10, 2026. It tracks daily checklists, progress, streaks, weight, screen time, and custom goals for each person. Data is saved in browser localStorage for now.
 
 ## Run locally
 
 ```bash
-cd ~/Downloads
-rm -rf momentum-daily-app
-unzip momentum-daily-app.zip -d momentum-daily-app
-cd momentum-daily-app
+cd ~/Downloads/daily-tracker
 npm install
 npm run dev
 ```
 
-## Push to GitHub / Vercel
-
-If you want this to replace your existing daily-tracker repo:
+## Build
 
 ```bash
-cd ~/Downloads
-rm -rf momentum-daily-app
-unzip momentum-daily-app.zip -d momentum-daily-app
-
-rm -rf daily-tracker
-mv momentum-daily-app daily-tracker
-cd daily-tracker
-
-npm install
+cd ~/Downloads/daily-tracker
 npm run build
-
-git init
-git add .
-git commit -m "replace daily tracker with momentum app"
-git branch -M main
-git remote add origin https://github.com/kameronshaw13/daily-tracker.git
-git push -u origin main --force
-
-npx vercel --prod
 ```
 
-If your local `daily-tracker` folder already has the GitHub remote set up, use this instead:
+## Deploy
 
-```bash
-cd ~/Downloads
-rm -rf momentum-daily-app
-unzip momentum-daily-app.zip -d momentum-daily-app
-rsync -av --delete momentum-daily-app/ daily-tracker/
-cd daily-tracker
-npm install
-npm run build
-git add .
-git commit -m "replace daily tracker with momentum app"
-git push origin main
-npx vercel --prod
-```
+The production app deploys through Vercel after pushing to the connected GitHub repository.
