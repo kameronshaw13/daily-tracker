@@ -1,8 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="116" fill="#f7f1e6"/>
-  <rect x="70" y="72" width="372" height="368" rx="64" fill="#6b4a2f"/>
-  <path d="M150 174h212" stroke="#d9ad5f" stroke-width="30" stroke-linecap="round"/>
-  <path d="M150 256h126" stroke="#fff7e8" stroke-width="30" stroke-linecap="round"/>
-  <path d="M150 338h176" stroke="#fff7e8" stroke-width="30" stroke-linecap="round"/>
-  <circle cx="362" cy="256" r="34" fill="#d9ad5f"/>
+  <rect width="512" height="512" rx="112" fill="#6b4a2f"/>
+  <circle cx="256" cy="256" r="158" fill="#f7f1e6"/>
+  <path d="M158 286c44-86 102-122 196-140-38 40-70 87-94 139 40-16 78-22 112-16-52 18-92 46-124 87-27-31-55-54-90-70z" fill="#d9ad5f"/>
+  <text x="256" y="404" text-anchor="middle" font-size="54" font-family="Arial, sans-serif" font-weight="900" fill="#432a1b">M</text>
 </svg>

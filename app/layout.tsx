@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Daily Progress",
-  description: "Track daily habits, schedule, weight, screen time, and progress.",
+  title: "Momentum",
+  description: "A daily schedule, food, workout, goals, and progress app.",
   manifest: "/manifest.json",
 };
 
