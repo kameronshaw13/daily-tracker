@@ -246,7 +246,6 @@ export default function Home() {
   const [selectedPerson, setSelectedPerson] = useState<PersonId>("kameron");
   const [data, setData] = useState<AppData>(starterData);
   const [newGoals, setNewGoals] = useState<Record<PersonId, string>>({ kameron: "", anna: "" });
-  const [startingWeightDrafts, setStartingWeightDrafts] = useState<Record<PersonId, string>>({ kameron: "", anna: "" });
 
   const dates = useMemo(() => challengeDates(), []);
 
@@ -286,23 +285,15 @@ export default function Home() {
   }
 
   function updateTracker(personId: PersonId, field: "weight" | "screenTime", value: string) {
-    updateLog(personId, (log) => ({ ...log, [field]: value }));
-  }
-
-  function updateStartingWeight(personId: PersonId, value: string) {
     updatePerson(personId, (person) => {
       const currentLog = person.logs[date] ?? defaultLog(date);
-      const nextLogs = value.trim()
-        ? { ...person.logs, [date]: { ...currentLog, weight: currentLog.weight || value } }
-        : person.logs;
-      return { ...person, startingWeight: value, logs: nextLogs };
+      const nextLog = { ...currentLog, [field]: value };
+      return {
+        ...person,
+        startingWeight: field === "weight" && date === challengeStart ? value : person.startingWeight,
+        logs: { ...person.logs, [date]: nextLog },
+      };
     });
-  }
-
-  function lockStartingWeight(personId: PersonId) {
-    const value = startingWeightDrafts[personId].trim();
-    if (!value) return;
-    updateStartingWeight(personId, value);
   }
 
   function updateGoal(personId: PersonId, goalId: string, field: "title" | "detail" | "active", value: string | boolean) {
@@ -395,15 +386,15 @@ export default function Home() {
     const currentLog = person.logs[date] ?? defaultLog(date);
     const currentScreen = readNumber(currentLog.screenTime);
     const lastSevenScreen = screenLogs.filter((item) => item.date <= date).slice(-7).map((item) => item.value);
-    const lockedStartingWeight = readNumber(person.startingWeight);
-    const startingWeight = lockedStartingWeight ?? weightLogs[0]?.value ?? null;
-    const currentWeight = readNumber(currentLog.weight) ?? weightLogs.at(-1)?.value ?? startingWeight;
+    const startingWeight = readNumber(person.logs[challengeStart]?.weight) ?? readNumber(person.startingWeight);
+    const currentWeight = date === challengeStart
+      ? startingWeight
+      : readNumber(currentLog.weight) ?? weightLogs.filter((item) => item.date > challengeStart).at(-1)?.value ?? null;
 
     return {
       log: currentLog,
       weightLogs,
       screenLogs,
-      startingWeightLocked: lockedStartingWeight !== null,
       startingWeight,
       currentWeight,
       weightChange: startingWeight !== null && currentWeight !== null ? currentWeight - startingWeight : null,
@@ -458,28 +449,6 @@ export default function Home() {
             <i style={{ height: `${Math.max(item.pct, 6)}%` }} />
           </button>
         ))}
-      </div>
-    );
-  }
-
-  function TrendChart({ points }: { points: { date: string; value: number }[] }) {
-    if (!points.length) return <div className="empty">No weight entries yet.</div>;
-    const values = points.map((point) => point.value);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const spread = Math.max(max - min, 1);
-
-    return (
-      <div className="trend-chart">
-        {points.slice(-14).map((point) => {
-          const height = 18 + ((point.value - min) / spread) * 70;
-          return (
-            <div key={point.date} className="trend-bar">
-              <span style={{ height: `${height}%` }} />
-              <small>{compactDate(point.date)}</small>
-            </div>
-          );
-        })}
       </div>
     );
   }
@@ -558,6 +527,9 @@ export default function Home() {
               <div className="stat-card"><span>Overall</span><strong>{selectedProgress.overall}%</strong></div>
               <div className="stat-card"><span>Current</span><strong>{selectedProgress.currentStreak}</strong></div>
               <div className="stat-card"><span>Best</span><strong>{selectedProgress.bestStreak}</strong></div>
+              <div className="stat-card"><span>Weight</span><strong>{selectedTracker.currentWeight === null ? "--" : selectedTracker.currentWeight.toFixed(1)}</strong><small>lbs</small></div>
+              <div className="stat-card"><span>Screen</span><strong>{clean(selectedTracker.log.screenTime, "h")}</strong><small>today</small></div>
+              <div className="stat-card"><span>Status</span><strong>{selectedTracker.screenPassed === null ? "--" : selectedTracker.screenPassed ? "Pass" : "Miss"}</strong><small>under 2h</small></div>
             </div>
             <MiniCalendar personId={selectedPerson} />
           </div>
@@ -578,17 +550,14 @@ export default function Home() {
 
             <div className="form-grid">
               <label className="metric-card">
-                <span>{selectedTracker.startingWeightLocked ? "Current weight" : "Starting weight"}</span>
+                <span>{date === challengeStart ? "Starting weight" : "Current weight"}</span>
                 <input
-                  value={selectedTracker.startingWeightLocked ? selectedTracker.log.weight : startingWeightDrafts[selectedPerson]}
-                  onChange={(event) => selectedTracker.startingWeightLocked
-                    ? updateTracker(selectedPerson, "weight", event.target.value)
-                    : setStartingWeightDrafts((current) => ({ ...current, [selectedPerson]: event.target.value }))}
+                  value={selectedTracker.log.weight}
+                  onChange={(event) => updateTracker(selectedPerson, "weight", event.target.value)}
                   inputMode="decimal"
                   placeholder="lbs"
                 />
-                <small>{selectedTracker.startingWeightLocked ? "Daily entry" : "Locks starting weight"}</small>
-                {!selectedTracker.startingWeightLocked && <button className="btn small lock-start" onClick={() => lockStartingWeight(selectedPerson)}>Lock start</button>}
+                <small>{date === challengeStart ? "Challenge start" : "Daily entry"}</small>
               </label>
               <label className="metric-card">
                 <span>Screen time</span>
@@ -610,8 +579,6 @@ export default function Home() {
               <div className="stat-card"><span>7-day avg</span><strong>{selectedTracker.screenWeeklyAverage ? selectedTracker.screenWeeklyAverage.toFixed(1) : "--"}</strong><small>hours</small></div>
               <div className="stat-card"><span>Status</span><strong>{selectedTracker.screenPassed === null ? "--" : selectedTracker.screenPassed ? "Pass" : "Miss"}</strong><small>under 2h</small></div>
             </div>
-
-            <TrendChart points={selectedTracker.weightLogs} />
           </div>
         </section>
       )}
@@ -652,10 +619,6 @@ export default function Home() {
           </div>
         </section>
       )}
-
-      <nav className="bottom-nav">
-        {tabs.map((name) => <button key={name} className={tab === name ? "active" : ""} onClick={() => setTab(name)}>{name}</button>)}
-      </nav>
     </main>
   );
 }

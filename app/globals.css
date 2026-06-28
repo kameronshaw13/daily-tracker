@@ -11,6 +11,7 @@
   --blue: #246fc5;
   --good: #168b68;
   --warn: #a96d2d;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -35,7 +36,7 @@ button { cursor: pointer; }
   width: min(100%, 560px);
   min-height: 100svh;
   margin: 0 auto;
-  padding: 18px 16px calc(116px + env(safe-area-inset-bottom));
+  padding: calc(18px + env(safe-area-inset-top)) 16px 28px;
 }
 
 .hero {
@@ -374,38 +375,6 @@ p, small {
 }
 .metric-card small { font-size: 12px; }
 
-.trend-chart {
-  display: grid;
-  grid-template-columns: repeat(14, minmax(16px, 1fr));
-  align-items: end;
-  gap: 6px;
-  min-height: 148px;
-  margin-top: 14px;
-  padding: 12px 0 8px;
-  border-bottom: 1px solid var(--line);
-  background: transparent;
-}
-.trend-bar {
-  display: grid;
-  grid-template-rows: 1fr auto;
-  align-items: end;
-  gap: 5px;
-  height: 124px;
-  min-width: 0;
-}
-.trend-bar span {
-  width: 100%;
-  min-height: 8px;
-  background: linear-gradient(180deg, var(--cyan), var(--blue));
-}
-.trend-bar small {
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 9px;
-  text-align: center;
-  white-space: nowrap;
-}
-
 .add-goal {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -463,34 +432,6 @@ p, small {
   font-weight: 800;
 }
 
-.bottom-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0;
-  border-top: 1px solid rgba(10, 55, 82, 0.16);
-  padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
-  background: rgba(224, 239, 243, 0.96);
-  backdrop-filter: blur(16px);
-}
-.bottom-nav button {
-  border: 0;
-  border-top: 3px solid transparent;
-  padding: 13px 2px 12px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 1000;
-}
-.bottom-nav button.active {
-  border-color: var(--cyan);
-  color: var(--ink);
-}
-
 @media (max-width: 430px) {
   .app-shell { padding-left: 14px; padding-right: 14px; }
   .hero { padding-top: 16px; }
@@ -525,9 +466,4 @@ p, small {
     padding: 7px 0;
     font-size: 12px;
   }
-  .trend-chart {
-    grid-template-columns: repeat(7, 1fr);
-    min-height: 190px;
-  }
-  .trend-bar:nth-child(-n + 7) { display: none; }
 }
