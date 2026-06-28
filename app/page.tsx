@@ -246,6 +246,7 @@ export default function Home() {
   const [selectedPerson, setSelectedPerson] = useState<PersonId>("kameron");
   const [data, setData] = useState<AppData>(starterData);
   const [newGoals, setNewGoals] = useState<Record<PersonId, string>>({ kameron: "", anna: "" });
+  const [trackerDraft, setTrackerDraft] = useState({ weight: "", screenTime: "" });
 
   const dates = useMemo(() => challengeDates(), []);
 
@@ -262,6 +263,11 @@ export default function Home() {
   useEffect(() => {
     window.localStorage.setItem(storageKey, JSON.stringify(data));
   }, [data]);
+
+  useEffect(() => {
+    const log = data[selectedPerson].logs[date] ?? defaultLog(date);
+    setTrackerDraft({ weight: log.weight, screenTime: log.screenTime });
+  }, [data, date, selectedPerson]);
 
   function updatePerson(personId: PersonId, updater: (person: PersonData) => PersonData) {
     setData((current) => ({ ...current, [personId]: updater(current[personId]) }));
@@ -284,13 +290,13 @@ export default function Home() {
     });
   }
 
-  function updateTracker(personId: PersonId, field: "weight" | "screenTime", value: string) {
+  function saveTrackers(personId: PersonId) {
     updatePerson(personId, (person) => {
       const currentLog = person.logs[date] ?? defaultLog(date);
-      const nextLog = { ...currentLog, [field]: value };
+      const nextLog = { ...currentLog, weight: trackerDraft.weight, screenTime: trackerDraft.screenTime };
       return {
         ...person,
-        startingWeight: field === "weight" && date === challengeStart ? value : person.startingWeight,
+        startingWeight: date === challengeStart ? trackerDraft.weight : person.startingWeight,
         logs: { ...person.logs, [date]: nextLog },
       };
     });
@@ -552,8 +558,8 @@ export default function Home() {
               <label className="metric-card">
                 <span>{date === challengeStart ? "Starting weight" : "Current weight"}</span>
                 <input
-                  value={selectedTracker.log.weight}
-                  onChange={(event) => updateTracker(selectedPerson, "weight", event.target.value)}
+                  value={trackerDraft.weight}
+                  onChange={(event) => setTrackerDraft((current) => ({ ...current, weight: event.target.value }))}
                   inputMode="decimal"
                   placeholder="lbs"
                 />
@@ -562,14 +568,15 @@ export default function Home() {
               <label className="metric-card">
                 <span>Screen time</span>
                 <input
-                  value={selectedTracker.log.screenTime}
-                  onChange={(event) => updateTracker(selectedPerson, "screenTime", event.target.value)}
+                  value={trackerDraft.screenTime}
+                  onChange={(event) => setTrackerDraft((current) => ({ ...current, screenTime: event.target.value }))}
                   inputMode="decimal"
                   placeholder="hours"
                 />
                 <small>{selectedTracker.screenPassed === null ? "Manual entry" : selectedTracker.screenPassed ? "Under 2 hours" : "Over 2 hours"}</small>
               </label>
             </div>
+            <button className="btn save-trackers" onClick={() => saveTrackers(selectedPerson)}>Save day</button>
 
             <div className="stat-grid light tracker-stats">
               <div className="stat-card"><span>Start</span><strong>{selectedTracker.startingWeight === null ? "--" : selectedTracker.startingWeight.toFixed(1)}</strong><small>lbs</small></div>
