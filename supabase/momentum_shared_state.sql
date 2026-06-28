@@ -6,6 +6,13 @@ create table if not exists public.momentum_challenge_state (
 
 alter table public.momentum_challenge_state enable row level security;
 
+grant usage on schema public to anon, authenticated;
+grant select, insert, update on table public.momentum_challenge_state to anon, authenticated;
+
+insert into public.momentum_challenge_state (id, app_data)
+values ('shared', '{}'::jsonb)
+on conflict (id) do nothing;
+
 do $$
 begin
   if not exists (

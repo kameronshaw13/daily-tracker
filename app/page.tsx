@@ -45,7 +45,7 @@ const supabaseUrl = rawSupabaseUrl
     ? rawSupabaseUrl
     : `https://${rawSupabaseUrl}.supabase.co`
   : "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
 const householdId = process.env.NEXT_PUBLIC_MOMENTUM_HOUSEHOLD_ID || "shared";
 const syncEnabled = Boolean(supabaseUrl && supabaseAnonKey);
 
@@ -272,7 +272,8 @@ async function fetchCloudData() {
   );
 
   if (!response.ok) {
-    throw new Error("Could not load shared Momentum data.");
+    const message = await response.text();
+    throw new Error(`Load failed ${response.status}: ${message || response.statusText}`);
   }
 
   const rows = (await response.json()) as { app_data?: unknown; updated_at?: string }[];
@@ -303,7 +304,8 @@ async function saveCloudData(data: AppData) {
   });
 
   if (!response.ok) {
-    throw new Error("Could not save shared Momentum data.");
+    const message = await response.text();
+    throw new Error(`Save failed ${response.status}: ${message || response.statusText}`);
   }
 
   return updatedAt;
@@ -318,6 +320,7 @@ export default function Home() {
   const [trackerDraft, setTrackerDraft] = useState({ weight: "", screenTime: "" });
   const [hydrated, setHydrated] = useState(false);
   const [syncState, setSyncState] = useState<SyncState>(syncEnabled ? "loading" : "local");
+  const [syncError, setSyncError] = useState("");
   const lastCloudSaveRef = useRef("");
 
   const dates = useMemo(() => challengeDates(), []);
@@ -345,14 +348,16 @@ export default function Home() {
           if (cloud) {
             nextData = cloud.data;
             lastCloudSaveRef.current = cloud.updatedAt;
-          } else if (saved) {
+          } else {
             const updatedAt = await saveCloudData(nextData);
             lastCloudSaveRef.current = updatedAt ?? "";
           }
 
+          setSyncError("");
           setSyncState("synced");
-        } catch {
+        } catch (error) {
           if (cancelled) return;
+          setSyncError(error instanceof Error ? error.message : "Supabase sync failed.");
           setSyncState("offline");
         }
       }
@@ -384,8 +389,10 @@ export default function Home() {
       try {
         const updatedAt = await saveCloudData(data);
         lastCloudSaveRef.current = updatedAt ?? "";
+        setSyncError("");
         setSyncState("synced");
-      } catch {
+      } catch (error) {
+        setSyncError(error instanceof Error ? error.message : "Supabase sync failed.");
         setSyncState("offline");
       }
     }, 650);
@@ -404,9 +411,13 @@ export default function Home() {
         if (cancelled || !cloud || cloud.updatedAt === lastCloudSaveRef.current) return;
         lastCloudSaveRef.current = cloud.updatedAt;
         setData(cloud.data);
+        setSyncError("");
         setSyncState("synced");
-      } catch {
-        if (!cancelled) setSyncState("offline");
+      } catch (error) {
+        if (!cancelled) {
+          setSyncError(error instanceof Error ? error.message : "Supabase sync failed.");
+          setSyncState("offline");
+        }
       }
     }
 
@@ -504,6 +515,15 @@ export default function Home() {
   const selectedToday = completionFor(data[selectedPerson], date);
   const selectedProgress = progressSummary(selectedPerson);
   const selectedTracker = trackerSummary(selectedPerson);
+  const syncLabel = !syncEnabled
+    ? "Local only - Supabase env vars are missing."
+    : syncState === "synced"
+      ? "Shared sync connected."
+      : syncState === "saving"
+        ? "Saving shared data..."
+        : syncState === "loading"
+          ? "Checking shared sync..."
+          : `Sync needs attention${syncError ? `: ${syncError}` : "."}`;
 
   function progressSummary(personId: PersonId) {
     const person = data[personId];
@@ -782,6 +802,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
+            <p className={`sync-note ${syncState === "offline" || !syncEnabled ? "offline" : ""}`}>{syncLabel}</p>
           </div>
         </section>
       )}
