@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Tab = "Today" | "Progress" | "Trackers" | "Goals";
 type PersonId = "kameron" | "anna";
@@ -27,6 +27,7 @@ type PersonData = {
 };
 
 type AppData = Record<PersonId, PersonData>;
+type SyncState = "loading" | "local" | "synced" | "saving" | "offline";
 
 const tabs: Tab[] = ["Today", "Progress", "Trackers", "Goals"];
 const people: { id: PersonId; name: string }[] = [
@@ -38,6 +39,10 @@ const storageKey = "momentum-75-day-challenge-v1";
 const challengeStart = "2026-06-28";
 const challengeEnd = "2026-09-10";
 const challengeLength = 75;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const householdId = process.env.NEXT_PUBLIC_MOMENTUM_HOUSEHOLD_ID || "shared";
+const syncEnabled = Boolean(supabaseUrl && supabaseAnonKey);
 
 const sharedGoals: Goal[] = [
   { id: "workout-1", title: "Workout 1", detail: "45 minutes.", active: true, template: true },
@@ -240,6 +245,65 @@ function mergeSavedData(saved: unknown): AppData {
   return next;
 }
 
+function cloudHeaders() {
+  return {
+    apikey: supabaseAnonKey ?? "",
+    Authorization: `Bearer ${supabaseAnonKey ?? ""}`,
+  };
+}
+
+function cloudEndpoint() {
+  return `${supabaseUrl}/rest/v1/momentum_challenge_state`;
+}
+
+async function fetchCloudData() {
+  if (!syncEnabled) return null;
+  const response = await fetch(
+    `${cloudEndpoint()}?id=eq.${encodeURIComponent(householdId)}&select=app_data,updated_at`,
+    {
+      headers: cloudHeaders(),
+      cache: "no-store",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Could not load shared Momentum data.");
+  }
+
+  const rows = (await response.json()) as { app_data?: unknown; updated_at?: string }[];
+  const row = rows[0];
+  if (!row?.app_data) return null;
+
+  return {
+    data: mergeSavedData(row.app_data),
+    updatedAt: row.updated_at ?? "",
+  };
+}
+
+async function saveCloudData(data: AppData) {
+  if (!syncEnabled) return;
+  const updatedAt = new Date().toISOString();
+  const response = await fetch(`${cloudEndpoint()}?on_conflict=id`, {
+    method: "POST",
+    headers: {
+      ...cloudHeaders(),
+      "Content-Type": "application/json",
+      Prefer: "resolution=merge-duplicates,return=minimal",
+    },
+    body: JSON.stringify({
+      id: householdId,
+      app_data: data,
+      updated_at: updatedAt,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Could not save shared Momentum data.");
+  }
+
+  return updatedAt;
+}
+
 export default function Home() {
   const [tab, setTab] = useState<Tab>("Today");
   const [date, setDate] = useState(getInitialDate);
@@ -247,22 +311,112 @@ export default function Home() {
   const [data, setData] = useState<AppData>(starterData);
   const [newGoals, setNewGoals] = useState<Record<PersonId, string>>({ kameron: "", anna: "" });
   const [trackerDraft, setTrackerDraft] = useState({ weight: "", screenTime: "" });
+  const [hydrated, setHydrated] = useState(false);
+  const [syncState, setSyncState] = useState<SyncState>(syncEnabled ? "loading" : "local");
+  const lastCloudSaveRef = useRef("");
 
   const dates = useMemo(() => challengeDates(), []);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(storageKey);
-    if (!saved) return;
-    try {
-      setData(mergeSavedData(JSON.parse(saved)));
-    } catch {
-      setData(starterData);
+    let cancelled = false;
+
+    async function hydrateData() {
+      let nextData = starterData;
+      const saved = window.localStorage.getItem(storageKey);
+
+      if (saved) {
+        try {
+          nextData = mergeSavedData(JSON.parse(saved));
+        } catch {
+          nextData = starterData;
+        }
+      }
+
+      if (syncEnabled) {
+        try {
+          const cloud = await fetchCloudData();
+          if (cancelled) return;
+
+          if (cloud) {
+            nextData = cloud.data;
+            lastCloudSaveRef.current = cloud.updatedAt;
+          } else if (saved) {
+            const updatedAt = await saveCloudData(nextData);
+            lastCloudSaveRef.current = updatedAt ?? "";
+          }
+
+          setSyncState("synced");
+        } catch {
+          if (cancelled) return;
+          setSyncState("offline");
+        }
+      }
+
+      if (!cancelled) {
+        setData(nextData);
+        setHydrated(true);
+      }
     }
+
+    hydrateData();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
+    if (!hydrated) return;
     window.localStorage.setItem(storageKey, JSON.stringify(data));
-  }, [data]);
+
+    if (!syncEnabled) {
+      setSyncState("local");
+      return;
+    }
+
+    setSyncState("saving");
+    const timeout = window.setTimeout(async () => {
+      try {
+        const updatedAt = await saveCloudData(data);
+        lastCloudSaveRef.current = updatedAt ?? "";
+        setSyncState("synced");
+      } catch {
+        setSyncState("offline");
+      }
+    }, 650);
+
+    return () => window.clearTimeout(timeout);
+  }, [data, hydrated]);
+
+  useEffect(() => {
+    if (!syncEnabled || !hydrated) return;
+
+    let cancelled = false;
+
+    async function refreshCloudData() {
+      try {
+        const cloud = await fetchCloudData();
+        if (cancelled || !cloud || cloud.updatedAt === lastCloudSaveRef.current) return;
+        lastCloudSaveRef.current = cloud.updatedAt;
+        setData(cloud.data);
+        setSyncState("synced");
+      } catch {
+        if (!cancelled) setSyncState("offline");
+      }
+    }
+
+    const onFocus = () => refreshCloudData();
+    const interval = window.setInterval(refreshCloudData, 30000);
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+    };
+  }, [hydrated]);
 
   useEffect(() => {
     const log = data[selectedPerson].logs[date] ?? defaultLog(date);
@@ -467,6 +621,17 @@ export default function Home() {
             <p className="eyebrow">Momentum 75</p>
             <h1>{selectedName}</h1>
           </div>
+          <span className={`sync-pill ${syncState}`}>
+            {syncState === "local"
+              ? "Local"
+              : syncState === "offline"
+                ? "Offline"
+                : syncState === "saving"
+                  ? "Saving"
+                  : syncState === "loading"
+                    ? "Loading"
+                    : "Shared"}
+          </span>
           <input
             className="date-pill"
             type="date"

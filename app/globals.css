@@ -50,10 +50,13 @@ button { cursor: pointer; }
   color: var(--ink);
 }
 .hero-top {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
+  gap: 8px 14px;
+}
+.hero-top > div {
+  grid-row: 1 / span 2;
 }
 .eyebrow {
   margin: 0 0 7px;
@@ -71,7 +74,20 @@ h1 {
   letter-spacing: 0;
 }
 .hero-copy { display: none; }
+.sync-pill {
+  justify-self: end;
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 1000;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.sync-pill.offline { color: var(--warn); }
+.sync-pill.local { color: var(--muted); }
+.sync-pill.saving,
+.sync-pill.loading { color: var(--blue); }
 .date-pill {
+  grid-column: 2;
   flex: 0 0 auto;
   width: 142px;
   max-width: 45%;
