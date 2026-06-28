@@ -27,7 +27,6 @@ type PersonData = {
 };
 
 type AppData = Record<PersonId, PersonData>;
-type SyncState = "loading" | "local" | "synced" | "saving" | "offline";
 
 const tabs: Tab[] = ["Today", "Progress", "Trackers", "Goals"];
 const people: { id: PersonId; name: string }[] = [
@@ -319,8 +318,6 @@ export default function Home() {
   const [newGoals, setNewGoals] = useState<Record<PersonId, string>>({ kameron: "", anna: "" });
   const [trackerDraft, setTrackerDraft] = useState({ weight: "", screenTime: "" });
   const [hydrated, setHydrated] = useState(false);
-  const [syncState, setSyncState] = useState<SyncState>(syncEnabled ? "loading" : "local");
-  const [syncError, setSyncError] = useState("");
   const lastCloudSaveRef = useRef("");
 
   const dates = useMemo(() => challengeDates(), []);
@@ -353,12 +350,9 @@ export default function Home() {
             lastCloudSaveRef.current = updatedAt ?? "";
           }
 
-          setSyncError("");
-          setSyncState("synced");
         } catch (error) {
           if (cancelled) return;
-          setSyncError(error instanceof Error ? error.message : "Supabase sync failed.");
-          setSyncState("offline");
+          console.warn(error instanceof Error ? error.message : "Supabase sync failed.");
         }
       }
 
@@ -380,20 +374,15 @@ export default function Home() {
     window.localStorage.setItem(storageKey, JSON.stringify(data));
 
     if (!syncEnabled) {
-      setSyncState("local");
       return;
     }
 
-    setSyncState("saving");
     const timeout = window.setTimeout(async () => {
       try {
         const updatedAt = await saveCloudData(data);
         lastCloudSaveRef.current = updatedAt ?? "";
-        setSyncError("");
-        setSyncState("synced");
       } catch (error) {
-        setSyncError(error instanceof Error ? error.message : "Supabase sync failed.");
-        setSyncState("offline");
+        console.warn(error instanceof Error ? error.message : "Supabase sync failed.");
       }
     }, 650);
 
@@ -411,12 +400,9 @@ export default function Home() {
         if (cancelled || !cloud || cloud.updatedAt === lastCloudSaveRef.current) return;
         lastCloudSaveRef.current = cloud.updatedAt;
         setData(cloud.data);
-        setSyncError("");
-        setSyncState("synced");
       } catch (error) {
         if (!cancelled) {
-          setSyncError(error instanceof Error ? error.message : "Supabase sync failed.");
-          setSyncState("offline");
+          console.warn(error instanceof Error ? error.message : "Supabase sync failed.");
         }
       }
     }
@@ -515,15 +501,6 @@ export default function Home() {
   const selectedToday = completionFor(data[selectedPerson], date);
   const selectedProgress = progressSummary(selectedPerson);
   const selectedTracker = trackerSummary(selectedPerson);
-  const syncLabel = !syncEnabled
-    ? "Local only - Supabase env vars are missing."
-    : syncState === "synced"
-      ? "Shared sync connected."
-      : syncState === "saving"
-        ? "Saving shared data..."
-        : syncState === "loading"
-          ? "Checking shared sync..."
-          : `Sync needs attention${syncError ? `: ${syncError}` : "."}`;
 
   function progressSummary(personId: PersonId) {
     const person = data[personId];
@@ -802,7 +779,6 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <p className={`sync-note ${syncState === "offline" || !syncEnabled ? "offline" : ""}`}>{syncLabel}</p>
           </div>
         </section>
       )}

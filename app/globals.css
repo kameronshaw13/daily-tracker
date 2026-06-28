@@ -19,7 +19,6 @@ html {
   width: 100%;
   min-height: 100%;
   background-color: var(--bg);
-  overscroll-behavior: none;
 }
 body {
   width: 100%;
@@ -29,7 +28,6 @@ body {
   color: var(--ink);
   font-family: ui-rounded, "SF Pro Rounded", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   overflow-x: hidden;
-  overscroll-behavior: none;
 }
 button, input, textarea { font: inherit; }
 button { cursor: pointer; }
@@ -38,7 +36,7 @@ button { cursor: pointer; }
   width: min(100%, 560px);
   min-height: 100svh;
   margin: 0 auto;
-  padding: calc(8px + env(safe-area-inset-top)) 16px 0;
+  padding: calc(8px + env(safe-area-inset-top)) 16px 28px;
   background-color: var(--bg);
 }
 
@@ -323,8 +321,7 @@ p, small {
 
 .task-row:last-child,
 .metric-card:last-child,
-.goal-edit-row:last-child,
-.stat-card:last-child {
+.goal-edit-row:last-child {
   border-bottom: 0;
 }
 
@@ -429,15 +426,6 @@ p, small {
   color: var(--muted);
   font-size: 13px;
 }
-.sync-note {
-  border-top: 1px solid var(--line);
-  margin-top: 14px;
-  padding-top: 12px;
-  color: var(--cyan);
-  font-size: 12px;
-  font-weight: 900;
-}
-.sync-note.offline { color: var(--warn); }
 .toggle-line {
   display: flex;
   align-items: center;
