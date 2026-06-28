@@ -25,10 +25,7 @@ body {
   height: 100%;
   min-height: 100%;
   margin: 0;
-  background:
-    radial-gradient(circle at top right, rgba(9, 142, 164, 0.17), transparent 28rem),
-    radial-gradient(circle at top left, rgba(36, 111, 197, 0.12), transparent 24rem),
-    linear-gradient(180deg, var(--bg) 0%, var(--bg) 48%, #dcecef 100%);
+  background: var(--bg);
   color: var(--ink);
   font-family: ui-rounded, "SF Pro Rounded", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   overflow: hidden;
@@ -41,7 +38,11 @@ button { cursor: pointer; }
   width: min(100%, 560px);
   height: 100dvh;
   margin: 0 auto;
-  padding: calc(8px + env(safe-area-inset-top)) 16px 28px;
+  padding: calc(8px + env(safe-area-inset-top)) 16px calc(12px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at top right, rgba(9, 142, 164, 0.17), transparent 28rem),
+    radial-gradient(circle at top left, rgba(36, 111, 197, 0.12), transparent 24rem),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg) 60%, #dcecef 100%);
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -169,7 +170,7 @@ h1 {
   padding: 12px 6px 10px;
   background: transparent;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 1000;
 }
 .person-switch button.active {
@@ -193,7 +194,7 @@ h1 {
   padding: 10px 2px 9px;
   background: transparent;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 1000;
 }
 .tab.active {
@@ -204,7 +205,6 @@ h1 {
 .section { display: grid; gap: 12px; }
 .card, .focus-card {
   padding: 14px 0;
-  border-bottom: 1px solid var(--line);
   background: transparent;
 }
 .focus-card {
@@ -318,6 +318,20 @@ p, small {
   border-left: 3px solid var(--bg);
   border-bottom: 3px solid var(--bg);
   transform: rotate(-45deg) translate(1px, -1px);
+}
+
+.section > :last-child::after {
+  content: "";
+  display: block;
+  border-bottom: 1px solid var(--line);
+  margin-top: 14px;
+}
+
+.task-row:last-child,
+.metric-card:last-child,
+.goal-edit-row:last-child,
+.stat-card:last-child {
+  border-bottom: 0;
 }
 
 .calendar-grid {
@@ -460,7 +474,8 @@ p, small {
     padding-left: 14px;
     padding-right: 14px;
   }
-  .tab { font-size: 10px; }
+  .person-switch button { font-size: 15px; }
+  .tab { font-size: 13px; }
   .stat-grid,
   .stat-grid.split,
   .tracker-stats {
