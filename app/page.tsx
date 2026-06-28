@@ -38,7 +38,7 @@ const challengeStart = "2026-06-28";
 const challengeEnd = "2026-09-10";
 const challengeLength = 75;
 
-const defaultGoals: Goal[] = [
+const sharedGoals: Goal[] = [
   { id: "workout-1", title: "Workout 1", detail: "45 minutes.", active: true, template: true },
   {
     id: "workout-2-outside",
@@ -63,16 +63,38 @@ const defaultGoals: Goal[] = [
   },
 ];
 
-function makePersonData(): PersonData {
+const kameronGoals: Goal[] = [
+  { id: "read", title: "Read 30 pages", detail: "30 pages.", active: true, template: true },
+  { id: "no-social-media", title: "No social media", detail: "Stay off social apps.", active: true, template: true },
+  { id: "wake-up", title: "Get up 6:00 / 6:30 AM", detail: "Morning start.", active: true, template: true },
+  { id: "learning-app-dev", title: "Continued learning / app development", detail: "Daily progress.", active: true, template: true },
+  { id: "weekday-bedtime", title: "Bed by 10:30 on weekdays", detail: "Weekday bedtime.", active: true, template: true },
+  { id: "pop-limit", title: "2 pops at work, 1 at home", detail: "Daily limit.", active: true, template: true },
+];
+
+const annaGoals: Goal[] = [
+  { id: "wake-up", title: "Get up 6:00 / 6:30 AM", detail: "Morning start.", active: true, template: true },
+  { id: "weekday-bedtime", title: "Bed by 10:30 on weekdays", detail: "Weekday bedtime.", active: true, template: true },
+  { id: "review-material", title: "Review half of material day of", detail: "Same-day review.", active: true, template: true },
+  { id: "coffee-sweetener-limit", title: "Coffee sweetener limit", detail: "Stay within the limit.", active: true, template: true },
+];
+
+function defaultGoalsFor(personId: PersonId): Goal[] {
+  const overrides = personId === "kameron" ? kameronGoals : annaGoals;
+  const overrideIds = new Set(overrides.map((goal) => goal.id));
+  return [...sharedGoals.filter((goal) => !overrideIds.has(goal.id)), ...overrides];
+}
+
+function makePersonData(personId: PersonId): PersonData {
   return {
-    goals: defaultGoals.map((goal) => ({ ...goal })),
+    goals: defaultGoalsFor(personId).map((goal) => ({ ...goal })),
     logs: {},
   };
 }
 
 const starterData: AppData = {
-  kameron: makePersonData(),
-  anna: makePersonData(),
+  kameron: makePersonData("kameron"),
+  anna: makePersonData("anna"),
 };
 
 function dateParts(dateKey: string) {
@@ -178,8 +200,8 @@ function readNumber(value: string) {
 function mergeSavedData(saved: unknown): AppData {
   const maybeData = saved as Partial<AppData> | null;
   const next: AppData = {
-    kameron: makePersonData(),
-    anna: makePersonData(),
+    kameron: makePersonData("kameron"),
+    anna: makePersonData("anna"),
   };
 
   for (const person of people) {
@@ -190,12 +212,13 @@ function mergeSavedData(saved: unknown): AppData {
 
     next[person.id] = {
       goals: [
-        ...defaultGoals.map((goal) => {
+        ...defaultGoalsFor(person.id).map((goal) => {
           const savedGoal = savedGoals.find((item) => item.id === goal.id);
+          const useUpdatedDefault = person.id === "kameron" && goal.id === "read" && savedGoal?.title === "Read 10 pages";
           return {
             ...goal,
-            title: typeof savedGoal?.title === "string" ? savedGoal.title : goal.title,
-            detail: typeof savedGoal?.detail === "string" ? savedGoal.detail : goal.detail,
+            title: useUpdatedDefault ? goal.title : typeof savedGoal?.title === "string" ? savedGoal.title : goal.title,
+            detail: useUpdatedDefault ? goal.detail : typeof savedGoal?.detail === "string" ? savedGoal.detail : goal.detail,
             active: typeof savedGoal?.active === "boolean" ? savedGoal.active : goal.active,
           };
         }),
