@@ -23,6 +23,7 @@ type DayLog = {
 type PersonData = {
   goals: Goal[];
   logs: Record<string, DayLog>;
+  startingWeight: string;
 };
 
 type AppData = Record<PersonId, PersonData>;
@@ -89,6 +90,7 @@ function makePersonData(personId: PersonId): PersonData {
   return {
     goals: defaultGoalsFor(personId).map((goal) => ({ ...goal })),
     logs: {},
+    startingWeight: "",
   };
 }
 
@@ -231,6 +233,7 @@ function mergeSavedData(saved: unknown): AppData {
         })),
       ],
       logs: savedPerson.logs && typeof savedPerson.logs === "object" ? savedPerson.logs : {},
+      startingWeight: typeof savedPerson.startingWeight === "string" ? savedPerson.startingWeight : "",
     };
   }
 
@@ -243,6 +246,7 @@ export default function Home() {
   const [selectedPerson, setSelectedPerson] = useState<PersonId>("kameron");
   const [data, setData] = useState<AppData>(starterData);
   const [newGoals, setNewGoals] = useState<Record<PersonId, string>>({ kameron: "", anna: "" });
+  const [startingWeightDrafts, setStartingWeightDrafts] = useState<Record<PersonId, string>>({ kameron: "", anna: "" });
 
   const dates = useMemo(() => challengeDates(), []);
 
@@ -285,6 +289,22 @@ export default function Home() {
     updateLog(personId, (log) => ({ ...log, [field]: value }));
   }
 
+  function updateStartingWeight(personId: PersonId, value: string) {
+    updatePerson(personId, (person) => {
+      const currentLog = person.logs[date] ?? defaultLog(date);
+      const nextLogs = value.trim()
+        ? { ...person.logs, [date]: { ...currentLog, weight: currentLog.weight || value } }
+        : person.logs;
+      return { ...person, startingWeight: value, logs: nextLogs };
+    });
+  }
+
+  function lockStartingWeight(personId: PersonId) {
+    const value = startingWeightDrafts[personId].trim();
+    if (!value) return;
+    updateStartingWeight(personId, value);
+  }
+
   function updateGoal(personId: PersonId, goalId: string, field: "title" | "detail" | "active", value: string | boolean) {
     updatePerson(personId, (person) => ({
       ...person,
@@ -313,6 +333,7 @@ export default function Home() {
 
   function deleteCustomGoal(personId: PersonId, goalId: string) {
     updatePerson(personId, (person) => ({
+      ...person,
       goals: person.goals.filter((goal) => goal.id !== goalId || goal.template),
       logs: Object.fromEntries(
         Object.entries(person.logs).map(([logDate, log]) => [
@@ -364,7 +385,7 @@ export default function Home() {
 
   function trackerSummary(personId: PersonId) {
     const person = data[personId];
-    const logs = dates.map((item) => person.logs[item] ?? defaultLog(item));
+    const logs = dates.filter((item) => item <= date).map((item) => person.logs[item] ?? defaultLog(item));
     const weightLogs = logs
       .map((log) => ({ date: log.date, value: readNumber(log.weight) }))
       .filter((item): item is { date: string; value: number } => item.value !== null);
@@ -374,13 +395,15 @@ export default function Home() {
     const currentLog = person.logs[date] ?? defaultLog(date);
     const currentScreen = readNumber(currentLog.screenTime);
     const lastSevenScreen = screenLogs.filter((item) => item.date <= date).slice(-7).map((item) => item.value);
-    const startingWeight = weightLogs[0]?.value ?? null;
-    const currentWeight = weightLogs.at(-1)?.value ?? null;
+    const lockedStartingWeight = readNumber(person.startingWeight);
+    const startingWeight = lockedStartingWeight ?? weightLogs[0]?.value ?? null;
+    const currentWeight = readNumber(currentLog.weight) ?? weightLogs.at(-1)?.value ?? startingWeight;
 
     return {
       log: currentLog,
       weightLogs,
       screenLogs,
+      startingWeightLocked: lockedStartingWeight !== null,
       startingWeight,
       currentWeight,
       weightChange: startingWeight !== null && currentWeight !== null ? currentWeight - startingWeight : null,
@@ -555,14 +578,17 @@ export default function Home() {
 
             <div className="form-grid">
               <label className="metric-card">
-                <span>Weight</span>
+                <span>{selectedTracker.startingWeightLocked ? "Current weight" : "Starting weight"}</span>
                 <input
-                  value={selectedTracker.log.weight}
-                  onChange={(event) => updateTracker(selectedPerson, "weight", event.target.value)}
+                  value={selectedTracker.startingWeightLocked ? selectedTracker.log.weight : startingWeightDrafts[selectedPerson]}
+                  onChange={(event) => selectedTracker.startingWeightLocked
+                    ? updateTracker(selectedPerson, "weight", event.target.value)
+                    : setStartingWeightDrafts((current) => ({ ...current, [selectedPerson]: event.target.value }))}
                   inputMode="decimal"
                   placeholder="lbs"
                 />
-                <small>Daily entry</small>
+                <small>{selectedTracker.startingWeightLocked ? "Daily entry" : "Locks starting weight"}</small>
+                {!selectedTracker.startingWeightLocked && <button className="btn small lock-start" onClick={() => lockStartingWeight(selectedPerson)}>Lock start</button>}
               </label>
               <label className="metric-card">
                 <span>Screen time</span>

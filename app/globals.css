@@ -14,13 +14,17 @@
 }
 
 * { box-sizing: border-box; }
-html { background: var(--bg); }
+html {
+  min-height: 100%;
+  background: var(--bg);
+}
 body {
+  min-height: 100%;
   margin: 0;
   background:
     radial-gradient(circle at top right, rgba(9, 142, 164, 0.17), transparent 28rem),
     radial-gradient(circle at top left, rgba(36, 111, 197, 0.12), transparent 24rem),
-    linear-gradient(180deg, #f3f9fa 0%, var(--bg) 48%, #dcecef 100%);
+    linear-gradient(180deg, var(--bg) 0%, var(--bg) 48%, #dcecef 100%);
   color: var(--ink);
   font-family: ui-rounded, "SF Pro Rounded", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
@@ -31,7 +35,7 @@ button { cursor: pointer; }
   width: min(100%, 560px);
   min-height: 100svh;
   margin: 0 auto;
-  padding: 18px 16px calc(96px + env(safe-area-inset-bottom));
+  padding: 18px 16px calc(116px + env(safe-area-inset-bottom));
 }
 
 .hero {
@@ -112,6 +116,7 @@ h1 {
   min-width: 0;
   padding: 0 0 10px;
   border-bottom: 1px solid var(--line);
+  text-align: center;
 }
 .stat-card span {
   display: block;
@@ -164,9 +169,6 @@ h1 {
 }
 
 .tabs {
-  position: sticky;
-  top: 0;
-  z-index: 5;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0;
@@ -299,8 +301,8 @@ p, small {
   content: "";
   width: 9px;
   height: 5px;
-  border-left: 3px solid #f3f9fa;
-  border-bottom: 3px solid #f3f9fa;
+  border-left: 3px solid var(--bg);
+  border-bottom: 3px solid var(--bg);
   transform: rotate(-45deg) translate(1px, -1px);
 }
 
@@ -471,14 +473,14 @@ p, small {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
   border-top: 1px solid rgba(10, 55, 82, 0.16);
-  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
   background: rgba(224, 239, 243, 0.96);
   backdrop-filter: blur(16px);
 }
 .bottom-nav button {
   border: 0;
   border-top: 3px solid transparent;
-  padding: 10px 2px 9px;
+  padding: 13px 2px 12px;
   background: transparent;
   color: var(--muted);
   font-size: 10px;
