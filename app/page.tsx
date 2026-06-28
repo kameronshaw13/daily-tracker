@@ -39,7 +39,12 @@ const storageKey = "momentum-75-day-challenge-v1";
 const challengeStart = "2026-06-28";
 const challengeEnd = "2026-09-10";
 const challengeLength = 75;
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
+const rawSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\/$/, "");
+const supabaseUrl = rawSupabaseUrl
+  ? rawSupabaseUrl.startsWith("http")
+    ? rawSupabaseUrl
+    : `https://${rawSupabaseUrl}.supabase.co`
+  : "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const householdId = process.env.NEXT_PUBLIC_MOMENTUM_HOUSEHOLD_ID || "shared";
 const syncEnabled = Boolean(supabaseUrl && supabaseAnonKey);
@@ -621,17 +626,6 @@ export default function Home() {
             <p className="eyebrow">Momentum 75</p>
             <h1>{selectedName}</h1>
           </div>
-          <span className={`sync-pill ${syncState}`}>
-            {syncState === "local"
-              ? "Local"
-              : syncState === "offline"
-                ? "Offline"
-                : syncState === "saving"
-                  ? "Saving"
-                  : syncState === "loading"
-                    ? "Loading"
-                    : "Shared"}
-          </span>
           <input
             className="date-pill"
             type="date"
